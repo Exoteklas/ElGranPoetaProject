@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libros - Carrito de Compras</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{% static 'images/Fondo.jpg' %}") no-repeat center center/cover;
+            filter: opacity(0.5);
+            z-index: -1;
+        }
+
+        .custom-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .custom-header {
+            font-size: 30px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            max-width: 200px;
+        }
+
+        .footer {
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 15px 0;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .footer p {
+            margin: 0;
+            padding: 0.5px 0;
+        }
+
+        .social-icons {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+        }
+
+        .social-icons img {
+            position: relative;
+            width: 24px;
+            margin-left: 10px;
+        }
+
+        /* Scrollable table and cart sections */
+        .table-scroll {
+            max-height: 300px; /* Adjust as needed */
+            overflow-y: auto;
+        }
+
+        .cart-scroll {
+            max-height: 200px; /* Adjust as needed */
+            overflow-y: auto;
+        }
+
+        /* Adjust margins to move the buttons up */
+        .btn-container {
+            margin-left: 700px;
+            width: 300px;
+            height: 30px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-logout-container {
+            margin-top: 10px; /* Adjust as needed */
+        }
+        .me-2{
+            width: 20px;
+            height: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-image"></div>
+
+    <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+
+    <div class="container custom-container">
+        <h1 class="custom-header">Listado de Libros</h1>
+
+        <div class="table-scroll">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre del Libro</th>
+                        <th>Autor</th>
+                        <th>Stock</th>
+                        <th>Bodega</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for libro in libros %}
+                        <tr>
+                            <td>{{ libro.nombre_libro }}</td>
+                            <td>{{ libro.autor.nombre }}</td>
+                            <td>{{ libro.stock }}</td>
+                            <td>{{ libro.bodega.ubicacion }}</td>
+                            <td>
+                                <form method="post" action="{% url 'agregar_carrito' libro.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-sm">Agregar al Carrito</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Libros en el Carrito</h2>
+        <div class="cart-scroll">
+            {% if carrito_libros %}
+                <ul class="list-group mb-3">
+                    {% for item in carrito_libros %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ item.libro.nombre_libro }} - Cantidad: {{ item.cantidad }}
+                            <form method="post" action="{% url 'quitar_libro' item.libro.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No hay libros en el carrito.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Ajuste de márgenes para subir los botones -->
+    <div class="btn-container">
+        <form method="post" action="{% url 'realizar_pedido' %}" onsubmit="return confirmarPedido();" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Realizar Pedido</button>
+        </form>
+    </div>
+
+    <div class="text-center mt-3 mb-3 btn-logout-container">
+        <!-- Botón de soporte -->
+        <p><a href="{% url 'crear_ticket_bodeguero' %}" class="btn btn-warning mt-3 d-inline-flex align-items-center">
+            <img src="{% static 'images/soporte.png' %}" alt="Soporte" class="me-2">
+            Soporte
+        </a></p>
+        <form method="post" action="{% url 'logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Cerrar Sesión</button>
+        </form>
+    </div>
+
+    <div class="footer">
+        <div class="container text-center">
+            <p>© 2024 - El Gran Poeta. Todos los derechos reservados.</p>  
+            <p>Dirección: Av. Libertador Bernardo O'Higgins 1234, Santiago, Chile / Teléfono: +56 2 2345 6789 / Email: contacto@elgranpoeta.cl</p>
+            <p>Contacto Soporte: +569 91524654 / email: soporte@elgranpoeta.cl</p>
+        </div>
+    </div>
+
+    <div class="social-icons">
+        <a href="https://facebook.com"><img src="{% static 'images/Facebook.png' %}" alt="Facebook"></a>
+        <a href="https://twitter.com"><img src="{% static 'images/X.png' %}" alt="Twitter"></a>
+        <a href="https://instagram.com"><img src="{% static 'images/Instagram.png' %}" alt="Instagram"></a>
+    </div>
+
+    <script>
+        function confirmarPedido() {
+            return confirm("¿Estás seguro de realizar este pedido?");
+        }
+    </script>
+</body>
+</html>
