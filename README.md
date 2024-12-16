@@ -6,7 +6,7 @@ El sistema de inventario desarrollado para la librería El Gran Poeta es una apl
 
 Colaboradores:
 Eliseo Chavez
-https://github.com/EChavezDevs
+
 
 Damián Gutiérrez
 https://github.com/DamianGutierrezLemus
